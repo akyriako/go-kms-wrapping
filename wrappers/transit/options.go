@@ -73,6 +73,8 @@ func getOpts(opt ...wrapping.Option) (*options, error) {
 				if err != nil {
 					return nil, err
 				}
+			case "key_id_prefix":
+				opts.withKeyIdPrefix = v
 			case "token":
 				opts.withToken = v
 			}
@@ -87,6 +89,10 @@ func getOpts(opt ...wrapping.Option) (*options, error) {
 				return nil, err
 			}
 		}
+	}
+
+	if err := wrapping.ParsePaths(&opts.withToken, &opts.withTlsClientKey); err != nil {
+		return nil, err
 	}
 
 	return &opts, nil
@@ -111,6 +117,7 @@ type options struct {
 	withTlsServerName  string
 	withTlsSkipVerify  bool
 	withToken          string
+	withKeyIdPrefix    string
 
 	withLogger hclog.Logger
 }
@@ -244,6 +251,16 @@ func WithLogger(with hclog.Logger) wrapping.Option {
 	return func() interface{} {
 		return OptionFunc(func(o *options) error {
 			o.withLogger = with
+			return nil
+		})
+	}
+}
+
+// WithKeyIdPrefix specifies a prefix to prepend to the keyId (key version)
+func WithKeyIdPrefix(with string) wrapping.Option {
+	return func() interface{} {
+		return OptionFunc(func(o *options) error {
+			o.withKeyIdPrefix = with
 			return nil
 		})
 	}
